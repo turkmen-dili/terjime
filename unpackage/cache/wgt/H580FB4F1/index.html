@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>实时语音翻译</title>
+    <link href="css/mui.min.css" rel="stylesheet"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        #record-button, #clear-button {
+            background-color: #4CAF50; /* Green background */
+            color: white; /* White text */
+            padding: 10px 20px; /* Padding around the text */
+            font-size: 16px; /* Text size */
+            border: none; /* No border */
+            cursor: pointer; /* Pointer cursor on hover */
+            border-radius: 5px; /* Rounded corners */
+        }
+        #clear-button {
+            background-color: #F44336; /* Red for the clear button */
+            margin-top: 10px; /* Space above the clear button */
+        }
+        #record-button.recording {
+            background-color: #D32F2F; /* Change color when recording */
+        }
+        #record-button i, #clear-button i {
+            margin-right: 5px; /* Space to the right of the icon */
+        }
+    </style>
+</head>
+<body>
+    <div class="mui-content">
+        <h1>实时语音翻译</h1>
+        <div>
+            <label for="input-language-selector">输入语言:</label>
+            <select id="input-language-selector">
+                <option value="en-US">英语</option>
+                <option value="ru-RU">俄语</option>
+                <option value="zh-CN">中文</option>
+                <option value="tr-TR">土耳其语</option>
+                <option value="de-DE">德语</option>
+            </select>
+        </div>
+        <button id="record-button"><i class="fas fa-microphone"></i> 开始录音</button>
+        <div id="translation-result">翻译结果将显示在这里</div>
+        <div id="translated-result">Translated text will appear here</div>
+        <button id="clear-button"><i class="fas fa-broom"></i> 清理</button>
+    </div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const recordButton = document.getElementById('record-button');
+        const clearButton = document.getElementById('clear-button');
+        const translationResult = document.getElementById('translation-result');
+        const translatedResult = document.getElementById('translated-result');
+        let mediaRecorder;
+        let audioChunks = [];
+        let isRecording = false;
+
+        const recognizer = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+        recognizer.lang = document.getElementById('input-language-selector').value;
+        recognizer.interimResults = true; // 实时显示识别结果
+        recognizer.continuous = true; // 持续识别
+
+        document.getElementById('input-language-selector').addEventListener('change', () => {
+            recognizer.lang = document.getElementById('input-language-selector').value;
+        });
+
+        recognizer.onresult = function(event) {
+            const transcript = Array.from(event.results)
+                                .map(result => result[0])
+                                .map(result => result.transcript)
+                                .join('');
+            translationResult.textContent = "识别到的文本: " + transcript;
+        };
+
+        recognizer.onerror = function(event) {
+            console.error("语音识别错误", event.error);
+        };
+
+        recordButton.addEventListener('click', () => {
+            if (!isRecording) {
+                audioChunks = [];
+                translationResult.textContent = '';
+                translatedResult.textContent = '';
+                navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
+                    mediaRecorder = new MediaRecorder(stream);
+                    mediaRecorder.start();
+                    isRecording = true;
+                    recordButton.textContent = '停止录音';
+                    recordButton.classList.add('recording');
+                    recognizer.start();
+
+                    mediaRecorder.ondataavailable = function(event) {
+                        audioChunks.push(event.data);
+                    };
+                }).catch(e => {
+                    console.error('Error accessing microphone', e);
+                });
+            } else {
+                mediaRecorder.stop();
+                mediaRecorder.onstop = function() {
+                    isRecording = false;
+                    recordButton.textContent = '开始录音';
+                    recordButton.classList.remove('recording');
+                    recognizer.stop();
+                    // 翻译文本
+                    translateText(translationResult.textContent);
+                };
+            }
+        });
+
+        clearButton.addEventListener('click', function() {
+            audioChunks = [];
+            translationResult.textContent = '翻译结果将显示在这里';
+            translatedResult.textContent = '';
+        });
+
+        function translateText(text) {
+            const url = "https://aip.baidubce.com/rpc/2.0/mt/texttrans/v1";
+            const params = {
+                from: 'auto',
+                to: 'tuk',
+                q: text,
+                termIds: ""
+            };
+				
+			const accessToken = '24.4364135d4f290da7ffd22c167323925e.2592000.1715789935.282335-61567036'
+            fetch(url + "?access_token=" + accessToken, {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify(params)
+			})
+			.then(response => {
+				if (!response.ok) {
+					throw new Error(`HTTP error! status: ${response.status}`);
+				} else if (!response.headers.get('Content-Type').includes('application/json')) {
+					throw new Error('Not a JSON response');
+				}
+				return response.json();
+			})
+			.then(data => {
+				if (data.error_code) {
+					throw new Error(`API error! code: ${data.error_code}, message: ${data.error_msg}`);
+				} else {
+					document.getElementById('translated-result').textContent = "翻译结果: " + data.result.trans_result[0].dst;
+				}
+			})
+			.catch(error => {
+				console.error('Error translating:', error.message);
+			});
+        }
+    });
+    </script>
+</body>  
+</html>
