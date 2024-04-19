@@ -11,8 +11,10 @@
           display: flex;          /* 启用Flexbox */
           flex-direction: column; /* 子元素垂直排列 */
           align-items: center;    /* 子元素在交叉轴上居中（水平居中） */
-          justify-content: flex-start;/* 子元素在主轴上居中（垂直居中） */
+          justify-content: normal;/* 子元素在主轴上居中（垂直居中） */
           height: 100vh;          /* 容器高度为视口高度 */
+		  text-align: center; /* Center container content */
+		  font-size: 14px;
         }
         
         #record-button {
@@ -31,6 +33,9 @@
           margin-top: 20px;    /* 结果框顶部的间隔 */
           width: 85%;          /* 结果框宽度 */
           text-align: start;  /* 文本居中对齐 */
+		  cursor: text; /* 使鼠标光标变为文本选择的样式 */
+		  user-select: text;
+		  
         }
 
 		.button {
@@ -72,6 +77,7 @@
 		}
 
 
+
     </style>
 </head>
 <body>
@@ -81,9 +87,9 @@
 
     <div class="mui-content"> <!-- 这里的元素会被居中显示 -->
 
-        <h1> <p><br><br><br></p>Ses terjime - Voice translation</h1>
+        <h1> <p><br><br><br></p>Ses terjime <br> Voice translation</h1>
         <div> 
-            <label for="input-language-selector">Sözlenýän dil - Select Source Language :</label>
+            <label for="input-language-selector">Sözlenýän dil - Source Language :</label>
             <select id="input-language-selector">
                 <option value="en-US">Iňlisçe-English</option>
                 <option value="ru-RU">Rusça-Russian</option>
@@ -96,11 +102,11 @@
 				<option value="hi-IN">Hindiçe-Hindi</option>
             </select>
         </div>
-        <button id="record-button"><i class="fas fa-microphone"></i> Sesiňizi yazyp başla -  Begin speaking</button>
+        <button id="record-button"><i class="fas fa-microphone"></i> Sesiňizi yazdyryp başla -  Begin speaking</button>
         <div id="translation-result">Sesiň yazgysy - recording contents:</div>
         <button id="clear-button"><i class="fas fa-broom"></i> Arassala - Clean up</button>
 		<div>
-		    <label for="target-language-selector">Terjime dili saylan- Select Target Language:</label>
+		    <label for="target-language-selector">Terjime dili - Target Language:</label>
 		    <select id="target-language-selector">
 		        <option value="tk">Türkmençe-Turkmen</option>
 		        <option value="ru">Rusça-Russian</option>
@@ -213,7 +219,7 @@
 		    const targetLanguageMap = {
 		        'tuk': 'tur', // 假设百度API使用 'tur' 表示土库曼语
 		        'ru': 'ru', // 适用于百度API的俄语代码
-				'en': 'en',
+				'en': 'en', // 适用于百度API的英语代码
 		        'tr': 'tr', // 适用于百度API的土耳其语代码
 		        // 可能需要添加更多映射
 		    };
