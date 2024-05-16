@@ -20,7 +20,7 @@ document.addEventListener('DOMContentLoaded', function() {
 				termIds: ""
 			}; 
 
-			const accessToken = '24.4364135d4f290da7ffd22c167323925e.2592000.1715789935.282335-61567036'; // 替换为你的真实accessToken
+			const accessToken = '24.35e64e1d2d4282f484477df789b3466e.2592000.1718468829.282335-61567036'; // 替换为你的真实accessToken
 			fetch(url + "?access_token=" + accessToken, {
 				method: 'POST',
 				headers: {
